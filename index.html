@@ -11,14 +11,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-}
-
-.filter-btn.active {
-    background-color: #3b82f6;
-    color: white;
-}
+body { font-family: 'Inter', system-ui, sans-serif; }
 
 .checkbox-custom {
     width: 20px;
@@ -49,10 +42,6 @@ body {
 .priority-medium { border-left: 4px solid #f59e0b; }
 .priority-low { border-left: 4px solid #10b981; }
 
-.task-item-enter {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -63,18 +52,15 @@ body {
 <body class="bg-gray-50 min-h-screen">
 
 <div class="max-w-5xl mx-auto p-6">
-
 <h1 class="text-3xl font-bold mb-6">My Todo List</h1>
 
 <div class="grid md:grid-cols-2 gap-6">
 
 <!-- FORM -->
 <div class="bg-white p-6 rounded-xl shadow">
-
 <h2 class="text-xl font-semibold mb-4">Add Task</h2>
 
 <form id="add-task-form">
-
 <input id="task-title" type="text" placeholder="Task title"
 class="w-full mb-3 p-3 border rounded-lg">
 
@@ -99,7 +85,6 @@ Important
 class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
 Add Task
 </button>
-
 </form>
 </div>
 
@@ -118,15 +103,18 @@ class="bg-white rounded-xl shadow divide-y">
 </div>
 
 </div>
-
 </div>
 
 <script>
 
-let todoData = [];
+// LOAD FROM LOCAL STORAGE
+let todoData = JSON.parse(localStorage.getItem("tasks")) || [];
+
+function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(todoData));
+}
 
 function renderTasks() {
-
 const container = document.getElementById("task-list-container");
 
 if (todoData.length === 0) {
@@ -136,11 +124,12 @@ container.innerHTML = `
 <p class="text-lg font-medium">No tasks yet</p>
 </div>
 `;
+updateStats();
 return;
 }
 
 container.innerHTML = todoData.map(task => `
-<div class="task-item priority-${task.priority} p-4 flex justify-between items-start">
+<div class="priority-${task.priority} p-4 flex justify-between items-start">
 <div>
 <div class="checkbox-custom ${task.completed ? "checked" : ""}" data-id="${task.id}"></div>
 <h3 class="font-medium ${task.completed ? "line-through text-gray-400" : ""}">
@@ -185,6 +174,7 @@ completed: false
 };
 
 todoData.unshift(newTask);
+saveTasks();
 
 this.reset();
 title.classList.remove("border-red-500");
@@ -198,12 +188,14 @@ if (e.target.closest(".checkbox-custom")) {
 const id = parseInt(e.target.closest(".checkbox-custom").dataset.id);
 const task = todoData.find(t => t.id === id);
 task.completed = !task.completed;
+saveTasks();
 renderTasks();
 }
 
 if (e.target.closest(".delete-btn")) {
 const id = parseInt(e.target.closest(".delete-btn").dataset.id);
 todoData = todoData.filter(t => t.id !== id);
+saveTasks();
 renderTasks();
 }
 

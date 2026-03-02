@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todo List App</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.filter-btn.active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    cursor: pointer;
+    position: relative;
+}
+
+.checkbox-custom.checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.checkbox-custom.checked::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.priority-high { border-left: 4px solid #ef4444; }
+.priority-medium { border-left: 4px solid #f59e0b; }
+.priority-low { border-left: 4px solid #10b981; }
+
+.task-item-enter {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+<div class="max-w-5xl mx-auto p-6">
+
+<h1 class="text-3xl font-bold mb-6">My Todo List</h1>
+
+<div class="grid md:grid-cols-2 gap-6">
+
+<!-- FORM -->
+<div class="bg-white p-6 rounded-xl shadow">
+
+<h2 class="text-xl font-semibold mb-4">Add Task</h2>
+
+<form id="add-task-form">
+
+<input id="task-title" type="text" placeholder="Task title"
+class="w-full mb-3 p-3 border rounded-lg">
+
+<textarea id="task-description" placeholder="Description"
+class="w-full mb-3 p-3 border rounded-lg"></textarea>
+
+<select id="task-priority" class="w-full mb-3 p-3 border rounded-lg">
+<option value="low">Low</option>
+<option value="medium" selected>Medium</option>
+<option value="high">High</option>
+</select>
+
+<input type="date" id="task-due-date"
+class="w-full mb-3 p-3 border rounded-lg">
+
+<label class="flex items-center mb-4">
+<input type="checkbox" id="task-important" class="mr-2">
+Important
+</label>
+
+<button type="submit"
+class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
+Add Task
+</button>
+
+</form>
+</div>
+
+<!-- TASK LIST -->
+<div>
+
+<div class="flex justify-between mb-4">
+<h2 class="text-xl font-semibold">Tasks</h2>
+<span id="productivity-percentage" class="font-bold text-blue-600">0%</span>
+</div>
+
+<div id="task-list-container"
+class="bg-white rounded-xl shadow divide-y">
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let todoData = [];
+
+function renderTasks() {
+
+const container = document.getElementById("task-list-container");
+
+if (todoData.length === 0) {
+container.innerHTML = `
+<div class="p-8 text-center text-gray-500">
+<i class="fas fa-tasks text-4xl mb-4 text-gray-300"></i>
+<p class="text-lg font-medium">No tasks yet</p>
+</div>
+`;
+return;
+}
+
+container.innerHTML = todoData.map(task => `
+<div class="task-item priority-${task.priority} p-4 flex justify-between items-start">
+<div>
+<div class="checkbox-custom ${task.completed ? "checked" : ""}" data-id="${task.id}"></div>
+<h3 class="font-medium ${task.completed ? "line-through text-gray-400" : ""}">
+${task.title}
+</h3>
+<p class="text-sm text-gray-500">${task.description}</p>
+</div>
+<button class="text-red-500 delete-btn" data-id="${task.id}">
+<i class="fas fa-trash"></i>
+</button>
+</div>
+`).join("");
+
+updateStats();
+}
+
+function updateStats() {
+const total = todoData.length;
+const completed = todoData.filter(t => t.completed).length;
+const percentage = total ? Math.round((completed / total) * 100) : 0;
+document.getElementById("productivity-percentage").textContent = percentage + "%";
+}
+
+document.getElementById("add-task-form").addEventListener("submit", function(e){
+e.preventDefault();
+
+const title = document.getElementById("task-title");
+if (!title.value.trim()) {
+title.classList.add("border-red-500");
+title.focus();
+return;
+}
+
+const newTask = {
+id: Date.now(),
+title: title.value.trim(),
+description: document.getElementById("task-description").value.trim(),
+priority: document.getElementById("task-priority").value,
+dueDate: document.getElementById("task-due-date").value,
+important: document.getElementById("task-important").checked,
+completed: false
+};
+
+todoData.unshift(newTask);
+
+this.reset();
+title.classList.remove("border-red-500");
+
+renderTasks();
+});
+
+document.addEventListener("click", function(e){
+
+if (e.target.closest(".checkbox-custom")) {
+const id = parseInt(e.target.closest(".checkbox-custom").dataset.id);
+const task = todoData.find(t => t.id === id);
+task.completed = !task.completed;
+renderTasks();
+}
+
+if (e.target.closest(".delete-btn")) {
+const id = parseInt(e.target.closest(".delete-btn").dataset.id);
+todoData = todoData.filter(t => t.id !== id);
+renderTasks();
+}
+
+});
+
+renderTasks();
+
+</script>
+
+</body>
+</html>
